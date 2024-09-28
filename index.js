@@ -1,28 +1,42 @@
-// Require necessary libraries and modules
-const { Client, GatewayIntentBits } = require('discord.js');
-const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
-const googleIt = require('google-it');
-require('dotenv').config();  // Load environment variables from .env file
+const fs = require("fs");
+const path = require("path");
+const { Client, GatewayIntentBits, Collection } = require("discord.js");
+require("dotenv").config();
 
-// Create the Discord client
+// Create the client
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates,
+  ],
 });
 
-// Bot is ready
-client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}`);
-});
+// Collection for commands
+client.commands = new Collection();
 
-// Basic command handler
-client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
+// Load command files dynamically
+const commandFiles = fs
+  .readdirSync(path.join(__dirname, "commands"))
+  .filter((file) => file.endsWith(".js"));
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.name, command);
+}
 
-    // Ping command
-    if (message.content === '!ping') {
-        message.channel.send('Pong!');
-    }
-});
+// Load event files dynamically
+const eventFiles = fs
+  .readdirSync(path.join(__dirname, "events"))
+  .filter((file) => file.endsWith(".js"));
+for (const file of eventFiles) {
+  const event = require(`./events/${file}`);
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args, client));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args, client));
+  }
+}
 
-// Log in to Discord with token from .env
+// Log in to Discord
 client.login(process.env.DISCORD_TOKEN);

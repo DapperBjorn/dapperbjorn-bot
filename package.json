@@ -3,7 +3,10 @@
     "@discordjs/voice": "^0.17.0",
     "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
-    "google-it": "^1.6.4"
+    "ffmpeg": "^0.0.4",
+    "google-it": "^1.6.4",
+    "youtube-search": "^1.1.6",
+    "ytdl-core": "^4.11.5"
   },
   "name": "dapperbjorn-bot",
   "version": "1.0.0",
